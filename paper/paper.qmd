@@ -1,0 +1,416 @@
+---
+title: "Forced to Flee: Climate Disasters and Conflict as Drivers of Internal Displacements"
+subtitle: "Analyzing the scale of Conflict Versus Natural Disasters and their impact on the number of people displaced between 2008 and 2022"
+author: 
+  - Rayan Awad Alim
+thanks: "Code and data are available at: https://github.com/RayanAlim/Climate-migration"
+date: today
+date-format: long
+abstract: "Communities worldwide are increasingly forced to adapt to the devastating impacts of climate change, including droughts, floods, and rising sea levels. This study analyzes global displacement data from the Internal Displacement Monitoring Centre (IDMC) from 2008 to 2022 to show that displacements triggered by climate disasters have not only intensified but have also begun to surpass displacements driven by conflicts, signaling a significant shift in the causes of global migration patterns that are driven by climate disasters."
+
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Install Packages if not downloaded:
+install_if_missing <- function(package_name) {
+  if (!requireNamespace(package_name, quietly = TRUE)) {
+    install.packages(package_name)
+    suppressMessages(library(package_name, character.only = TRUE))
+  }
+}
+
+install_if_missing("readxl")
+install_if_missing("here")
+install_if_missing("dplyr")
+install_if_missing("ggplot2")
+install_if_missing("tidyr")
+install_if_missing("caret")
+```
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# Load 
+library(readxl)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(caret)
+
+#Load Data 
+data <- read.csv(here("data", "analysis_data", "IDMC_processed.csv"))
+```
+
+
+# Introduction
+
+You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+
+The remainder of this paper is structured as follows. @sec-data....
+
+
+In the face of sudden disasters and intense weather events, such as hurricanes and flash floods, to the more insidious progressions of environmental degradation, including gradual soil erosion and water scarcity, climate change is steadily uprooting communities and testing the bounds of their resilience (Adger et al., 2009). For many, migration emerges as an essential response, occurring against a backdrop of escalating climate challenges. The Institute for Economics & Peace predicts that climate change could displace 1.2 billion people by 2050  (Institute for Economics & Peace, 2023).
+
+## Climate-Driven Migration 
+
+Climate change migration refers to the movement of people induced by climate change impacts such as extreme weather events, rising sea levels, and prolonged droughts (Black, 2011). This type of migration can be temporary or permanent, often occurring both within countries and across borders. The complexity of defining and quantifying such migration stems from the myriad ways in which climate impacts drive people from their homes, compelling them to seek safer or more viable living conditions.
+
+The importance of addressing climate migration lies in its significant implications for global stability, human rights, and social equity. As climate change exacerbates existing vulnerabilities, particularly in less developed regions, it challenges the capacity of communities and nations to sustain their populations. Effective management and support of climate-induced migration are crucial in preventing humanitarian crises and conflicts that may arise from resource scarcity and population displaceme
+Climate Refugees 
+
+As the world is witnesses a surge in climate-induced migration, the term "climate refugees” is increasingly being used to refer to people who have been forced to leave their homes as a result of the effects of climate change on their environment (Jakobeit et al., 2016). However, the term lacks not have a legal definition nor are climate refugees an official status protected under international laws or the 1951 Refugee Convention which covers people fleeing population on the grounds of their race, religion, nationality,membership of a particular social group or political opinion (Betts, 2013).
+
+Defining and quantifying climate migration is challenging because the factors driving displacement are often interwoven with socioeconomic and political pressures (Piguet et al., 2010). Livelihoods may be disrupted by a combination of environmental factors, such as declining crop yields due to drought and saltwater intrusion from rising sea levels, coupled with limited social safety nets and political instability (Warner, 2010). Enviromentalists themselves argue against a monolithic definition of "climate migration," highlighting the importance of distinguishing between environmental displacement triggered by sudden-onset events like hurricanes and the more gradual processes associated with environmental degradation (Castles, 2015). 
+
+
+# Data {#sec-data}
+
+## Data Sources
+
+The primary dataset used in this study consists of data from the Internal Displacement Monitoring Centre (IDMC). The IDMC collects global data on internally displaced persons (IDPs) due to conflict, violence, and disasters. This data includes metrics on both the incidence of new displacements and the existing stock of displaced persons as of the end of each year.
+
+## Collection Methods
+
+Data collection by IDMC involves a combination of direct data submissions, partnerships with local and international organizations, and comprehensive reviews of public reports and news articles. The collected data encompasses various events leading to displacement, documented systematically through an event-based monitoring approach. This method ensures that each displacement event is categorized and analyzed based on the location, date, trigger, and duration of displacement.
+
+## Variables in the Dataset
+
+The key variables included in the dataset are:Country: The country where the displacement occurred.Year: The year of the data record.Type of Displacement: Categorized as conflict-induced or disaster-induced.New Displacements: The number of new displacements occurring within the reporting year.Stock of Displacement: The cumulative number of displaced individuals still displaced by the end of the reporting year.Causes of Displacement: Specific causes or events leading to displacement, such as armed conflict, violence, floods, earthquakes, etc.
+
+## Data Features
+
+The dataset features comprehensive details on the scale and specifics of displacement:Geospatial Data: Information on the locations affected by displacement.
+- Disaggregated Data: Whenever available, data includes disaggregation by age, sex, and occasionally by disability status, offering insights into the demographics of displaced populations.
+
+## Sampling
+
+Data by IDMC is not sampled but aggregated from comprehensive event-based monitoring and reporting from various sources, aiming to cover all incidences of internal displacement globally. Where data is not available directly, IDMC employs modeling techniques to estimate displacement figures.
+
+## Bias and Limitations
+
+Several potential biases and limitations affect the data:
+- Reporting Bias: Displacement events are sometimes under-reported, especially in regions with limited access or media coverage.
+- Access Constraints: Conflict and violence may restrict access to certain areas, limiting data collection capabilities.
+- Data Overlap and Gaps: There may be overlaps or gaps in data due to the varied nature of sources and the challenge of integrating data from different reporting periods and methodologies.
+- Temporal and Geographical Coverage Variations: The frequency and detail of reporting can vary significantly across different regions and times.
+
+## Displacement Trends Over Years
+### Conflict-Induced Displacements
+```{r}
+# Displacement Total Over the years 
+year_vec <- unique(IDMC_processed$Year)
+sum_df <-
+  data.frame(
+    Year = integer(),
+    Total_Conflict_Displacement = integer(),
+    Total_Disaster_Displacement = integer(),
+    Total_Displacement = integer()
+  )
+
+for (x in year_vec) {
+  conf_stock_tot <-
+    sum(IDMC_processed$Conflict_Stock_Displacement_Raw[IDMC_processed$Year == x])
+  disa_stock_tot <-
+    sum(IDMC_processed$Disaster_Stock_Displacement_Raw[IDMC_processed$Year == x])
+  total_disp <- conf_stock_tot + disa_stock_tot
+  
+  
+  # Create a dataframe for the sums
+  year_sum_df <- data.frame(
+    Year = x,
+    Total_Conflict_Displacement = conf_stock_tot,
+    Total_Disaster_Displacement = disa_stock_tot,
+    Total_Displacement = total_disp
+  )
+  
+  # Merge with sum_df
+  sum_df <- rbind(sum_df, year_sum_df)
+}
+```
+
+```{r}
+#Plotting displacement Number
+ggplot(sum_df, aes(x = Year)) +
+  geom_point(aes(y = Total_Conflict_Displacement, color = "Conflict Displacements"),
+             size = 3) +
+  geom_line(aes(y = Total_Conflict_Displacement, color = "Conflict Displacements"),
+            linetype = "solid") +
+  geom_point(aes(y = Total_Disaster_Displacement, color = "Disaster Displacements"),
+             size = 3) +
+  geom_line(aes(y = Total_Disaster_Displacement, color = "Disaster Displacements"),
+            linetype = "dashed") +
+  geom_point(aes(y = Total_Displacement, color = "Total Displacements"), size = 3) +
+  geom_line(aes(y = Total_Displacement, color = "Total Displacements"),
+            linetype = "dotdash") +
+  scale_color_manual(
+    values = c(
+      "Conflict Displacements" = "steelblue1",
+      "Disaster Displacements" = "tomato1",
+      "Total Displacements" = "springgreen3"
+    )
+  ) +
+  labs(
+    title = "Annual Trends in Displacement Due to Conflict and Disasters",
+    x = "Year",
+    y = "Number of People Displaced",
+    color = "Displacement Type"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+### Conflict-Induced Displacements
+Disaster-Induced Displacements
+
+The analysis was carried out using the statistical programming language `R` [@citeR], using the `tidyverse`[@citetidy], `here`[@citehere], and `readxl`[@citexl] packages. The figures and tables in the paper are generated using the, respectively, `ggplot2`[@citegg] and `knitr`[@citeknitr] packages.
+
+
+# Model
+
+The goal of our modelling is to predict trends in displacement data, specifically focusing on two primary sources of displacement: conflict and natural disasters. The rationale behind employing linear regression lies in its simplicity and interpretability, making it an appropriate choice for modeling the relationship between displacement and time.
+
+# Model Set up:
+
+The linear regression model takes the form:
+
+`Displacement = β0​ + β1​ × Year + ϵ`
+
+Where:
+
+**Displacement** represents the number of displaced individuals due to either conflict or natural disasters. 
+
+**Year** serves as the independent variable, representing time. 
+
+**β0β0​ and β1β1​** denote the intercept and slope coefficients, respectively. **ϵ** represents the error term, capturing unobserved factors influencing displacement.
+
+# Model Justification:
+
+Linear regression offers a straightforward approach to understand how displacement evolves over time. By fitting separate models for conflict-induced displacement and displacement caused by natural disasters, we can discern distinct trends and quantify their relationships with time. This enables policymakers and humanitarian organizations to anticipate future displacement patterns and allocate resources accordingly.
+
+# Prediction:
+
+The fitted regression models allow us to make predictions for future years, providing valuable insights into potential displacement scenarios. By extrapolating displacement trends beyond observed data, we can estimate the number of displaced individuals for the years 2023 and 2024. These predictions serve as early warning indicators, aiding in preparedness efforts and facilitating timely intervention strategies to mitigate the impacts of displacement.
+
+# Results
+
+Our results are summarized in @tbl-modelresults.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+library(rstanarm)
+
+first_model <-
+  readRDS(file = here::here("models/first_model.rds"))
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-modelresults
+#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| warning: false
+
+```{r}
+IDMC_processed$Total_Displacement <- IDMC_processed$Conflict_Stock_Displacement_Raw + IDMC_processed$Disaster_Stock_Displacement_Raw
+```
+
+```{r}
+# Fit linear models
+conflict_model <- lm(Conflict_Stock_Displacement_Raw ~ Year, data = IDMC_processed)
+disaster_model <- lm(Disaster_Stock_Displacement_Raw ~ Year, data = IDMC_processed)
+total_model <- lm(Total_Displacement ~ Year, data = IDMC_processed)
+
+# Add fitted values to the dataframe for plotting
+IDMC_processed$conflict_fitted <- predict(conflict_model)
+IDMC_processed$disaster_fitted <- predict(disaster_model)
+IDMC_processed$total_fitted <- predict(total_model)
+
+```
+
+```{r}
+# Plotting the regression
+ggplot(data, aes(x = Year)) +
+  geom_point(aes(y = Conflict_Stock_Displacement_Raw, color = "Actual Conflict Data"),
+             size = 3) +
+  geom_line(aes(y = conflict_fitted, color = "Fitted Conflict Line"),
+            linetype = "dashed") +
+  geom_text(
+    aes(y = conflict_fitted, label = round(conflict_fitted)),
+    vjust = -0.5,
+    hjust = 0.5,
+    size = 3,
+    color = "tomato1"
+  ) +
+  geom_point(aes(y = Disaster_Stock_Displacement_Raw, color = "Actual Disaster Data"),
+             size = 3) +
+  geom_line(aes(y = disaster_fitted, color = "Fitted Disaster Line"),
+            linetype = "dashed") +
+  geom_text(
+    aes(y = disaster_fitted, label = round(disaster_fitted)),
+    vjust = -0.5,
+    hjust = 0.5,
+    size = 3,
+    color = "cyan"
+  ) +
+  scale_color_manual(
+    values = c(
+      "tomato1",
+      "cyan",
+      "springgreen",
+      "Actual Conflict Data" = "maroon2",
+      "Fitted Conflict Line" = "cyan",
+      "Actual Disaster Data" = "blue2",
+      "Fitted Disaster Line" = "royalblue4"
+    )
+  ) +
+  labs(
+    title = "Regression Analysis of Displacement Trends",
+    x = "Year",
+    y = "Number of People Displaced",
+    color = "Data Type"
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+```
+```
+
+
+
+```{r}
+#| label: fig-bills
+#| fig-cap: Bills of penguins
+#| echo: false
+
+ggplot(penguins, aes(x = island, fill = species)) +
+  geom_bar(alpha = 0.8) +
+  scale_fill_manual(values = c("darkorange","purple","cyan4"),
+                    guide = "none") +
+  theme_minimal() +
+  facet_wrap(~species, ncol = 1) +
+  coord_flip()
+```
+
+Talk more about it.
+
+And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+
+```{r}
+#| label: fig-planes
+#| fig-cap: Relationship between wing length and width
+#| echo: false
+#| warning: false
+#| message: false
+
+analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+
+analysis_data |> 
+  ggplot(aes(x = width, y = length)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  labs(x = "Wing width (mm)",
+       y = "Wing length (mm)")
+```
+
+Talk way more about it. 
+
+
+
+
+# Discussion
+
+## First discussion point {#sec-first-point}
+
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+
+## Second discussion point
+
+## Third discussion point
+
+## Weaknesses and next steps
+
+Weaknesses and next steps should also be included.
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+
+# Additional data details
+
+# Model details {#sec-model-details}
+
+## Posterior predictive check
+
+In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
+
+```{r}
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-ppcheckandposteriorvsprior
+#| layout-ncol: 2
+#| fig-cap: "Examining how the model fits, and is affected by, the data"
+#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
+
+pp_check(first_model) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+posterior_vs_prior(first_model) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+```
+
+## Diagnostics
+
+@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
+
+@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
+
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+#| warning: false
+#| label: fig-stanareyouokay
+#| fig-cap: "Checking the convergence of the MCMC algorithm"
+#| fig-subcap: ["Trace plot", "Rhat plot"]
+#| layout-ncol: 2
+
+plot(first_model, "trace")
+
+plot(first_model, "rhat")
+```
+
+
+
+\newpage
+
+
+# References
+
+
