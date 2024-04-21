@@ -4,7 +4,7 @@ Analyzing the scale of Conflict Versus Natural Disasters and their impact on the
 
 ## Overview
 
-Communities worldwide are increasingly forced to adapt to the devastating impacts of climate change, including droughts, floods, and rising sea levels. This study analyzes global displacement data from the Internal Displacement Monitoring Centre (IDMC) from 2008 to 2022 to show that displacements triggered by climate disasters have not only intensified but have also begun to surpass displacements driven by conflicts, signaling a significant shift in the causes of global migration patterns that are driven by climate disasters."
+Communities worldwide are increasingly forced to adapt to the devastating impacts of climate change, including droughts, floods, and rising sea levels. This study analyzes global displacement data from the Internal Displacement Monitoring Centre (IDMC) from 2008 to 2022 to show that displacements triggered by climate disasters have not only intensified but have also begun to surpass displacements driven by conflicts, signaling a significant shift in the causes of global migration patterns that are driven by climate disasters.
 
 
 ## File Structure
