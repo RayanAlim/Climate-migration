@@ -54,7 +54,7 @@ with(data, any(Conflict_Internal_Displacements_Raw > Conflict_Stock_Displacement
 with(data, any(Conflict_Stock_Displacement_Raw < 0, Disaster_Stock_Displacement_Raw < 0))
 
 # Check if Year is within expected range
-with(data, any(Year < 1990 | Year > 2023))  # Adjust range as necessary
+with(data, any(Year < 1990 | Year > 2023))  
 
 # Check data types of each column
 str(data)
@@ -72,7 +72,7 @@ summary(data)
 print("Detailed Summary:")
 skim(data)
 
-# Filter data for Afghanistan as an example
+# Filter data for Afghanistan
 afg_data <- subset(data, ISO3 == "AFG")
 
 # Plotting total displacements over time for Afghanistan
